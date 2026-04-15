@@ -74,6 +74,47 @@ def download_template(type_id: int, background_tasks: BackgroundTasks, db: Sessi
         filename=f"Template_{part_type.name}.xlsx", 
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+@router.get("/bulk/template-multi")
+def download_multi_template(background_tasks: BackgroundTasks, db: Session = Depends(get_db), admin: models.User = Depends(get_download_admin)):
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Template Multi-Tipo"
+    
+    # Base headers
+    headers = [
+        "TIPO", "REF_PECA", "LOCALIZACAO", "MARCA", "MODELO", "ANO", 
+        "PRECO", "MOSTRAR_PRECO_SITE", "OBSERVACOES", "FOTOS_FILENAMES"
+    ]
+    
+    # Collect all unique dynamic fields from all types to make a "master" template
+    all_fields = db.query(models.TypeField.name).distinct().all()
+    dynamic_names = [f[0] for f in all_fields]
+    headers.extend(dynamic_names)
+    
+    ws.append(["--- INSTRUÇÕES PARA IMPORTAÇÃO MULTI-TIPO ---"])
+    ws.append(["1. Use a coluna 'TIPO' para indicar a categoria de cada peça (ex: Motor, Alternador)."])
+    ws.append(["2. O nome na coluna 'TIPO' deve coincidir exatamente com o nome da categoria no sistema."])
+    ws.append(["3. Pode deixar colunas vazias se não se aplicarem a esse tipo específico."])
+    ws.append(["4. Zip este Excel com a pasta 'imagens' e faça upload normalmente."])
+    ws.append(["TYPE_ID=0 (Ignorado quando a coluna TIPO está presente)"])
+    ws.append([]) 
+    
+    ws.append(headers)
+    header_row_index = 7
+    for col_num in range(1, len(headers) + 1):
+        ws.cell(row=header_row_index, column=col_num).font = openpyxl.styles.Font(bold=True)
+    
+    os.makedirs("storage/temp", exist_ok=True)
+    temp_file = f"storage/temp/multi_template_{uuid.uuid4()}.xlsx"
+    wb.save(temp_file)
+    
+    background_tasks.add_task(remove_file, temp_file)
+    
+    return FileResponse(
+        path=temp_file, 
+        filename="Template_MultiTipo_AutoParts.xlsx", 
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 
 
 # 2. ZIP IMPORT

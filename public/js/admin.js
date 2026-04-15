@@ -1944,6 +1944,10 @@ window.downloadTemplate = (btn) => {
     doAuthDownload(`/bulk/template/${id}`, `Template_Tipo_${id}.xlsx`, btn);
 };
 
+window.downloadMultiTemplate = (btn) => {
+    doAuthDownload('/bulk/template-multi', 'Template_MultiTipo_AutoParts.xlsx', btn);
+};
+
 // Drag-drop helpers for the ZIP upload zone
 window.handleBulkDrop = (event) => {
     const files = event.dataTransfer.files;
