@@ -113,7 +113,7 @@ const _ssInstances = {};
 function populateSelectors() {
     const typeSels = ['part-type', 'bulk-type-select', 'admin-filter-type', 'export-filter-type'];
     const brandSels = ['part-brand', 'vehicle-make', 'admin-filter-brand', 'export-filter-brand'];
-    const locSels = ['part-location', 'export-filter-location'];
+    const locSels = ['part-location'];
     const statusSels = ['admin-filter-status'];
     const vehTypeSels = ['vehicles-filter-type', 'vehicle-type'];
 
@@ -2130,7 +2130,6 @@ window.exportSalesToExcel = async (btn) => {
 window.doExportReport = (type, btn) => {
     const typeId = document.getElementById('export-filter-type')?.value || '';
     const brand = document.getElementById('export-filter-brand')?.value || '';
-    const location = document.getElementById('export-filter-location')?.value || '';
     const start = document.getElementById('export-filter-start')?.value || '';
     const end = document.getElementById('export-filter-end')?.value || '';
 
@@ -2138,7 +2137,6 @@ window.doExportReport = (type, btn) => {
     const params = [];
     if (typeId) params.push(`type_id=${typeId}`);
     if (brand) params.push(`brand=${encodeURIComponent(brand)}`);
-    if (location) params.push(`location=${encodeURIComponent(location)}`);
     if (start) params.push(`start_date=${start}`);
     if (end) params.push(`end_date=${end}`);
 
@@ -2157,7 +2155,6 @@ window.doExportReport = (type, btn) => {
 window.resetExportFilters = () => {
     if (_ssInstances['export-filter-type']) _ssInstances['export-filter-type'].reset();
     if (_ssInstances['export-filter-brand']) _ssInstances['export-filter-brand'].reset();
-    if (_ssInstances['export-filter-location']) _ssInstances['export-filter-location'].reset();
     document.getElementById('export-filter-start').value = '';
     document.getElementById('export-filter-end').value = '';
     showToast('Filtros de exportação limpos.');
