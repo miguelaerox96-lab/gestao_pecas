@@ -14,7 +14,9 @@ async function apiCall(endpoint, method = 'GET', body = null) {
     if (body) config.body = JSON.stringify(body);
 
     try {
-        const response = await fetch(`${API_BASE}${endpoint}`, config);
+        const sep = endpoint.includes('?') ? '&' : '?';
+        const url = `${API_BASE}${endpoint}${sep}cb=${Date.now()}`;
+        const response = await fetch(url, config);
         
         if (response.status === 401) {
             handleAuthError();

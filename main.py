@@ -1,7 +1,7 @@
 import os
 import sys
 from pathlib import Path
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
@@ -10,6 +10,8 @@ from fastapi.responses import FileResponse
 import models
 from database import engine, get_db
 from routers import auth, parts, vehicles, config, analytics, inquiries, storage, users, bulk
+from routers.bulk import ClearSystemRequest
+from routers.auth import check_admin
 
 def get_base_path():
     """Get the absolute path to the resource directory, works for dev and PyInstaller."""
@@ -19,6 +21,32 @@ def get_base_path():
 
 BASE_DIR = get_base_path()
 app = FastAPI(title="AutoParts Management API")
+
+@app.post("/maintenance/clear")
+def clear_system_direct(req: ClearSystemRequest, db: Session = Depends(get_db), admin: models.User = Depends(check_admin)):
+    mode = req.mode
+    try:
+        db.query(models.Inquiry).delete()
+        db.query(models.HistoryRecord).delete()
+        db.query(models.Part).delete()
+        db.query(models.Vehicle).delete()
+        if mode == "full":
+            db.query(models.TypeField).delete()
+            db.query(models.PartType).delete()
+            db.query(models.Location).delete()
+            db.query(models.Brand).delete()
+        db.commit()
+        if os.path.exists("storage"):
+            for root, dirs, files in os.walk("storage"):
+                for file in files:
+                    if file.endswith((".jpg", ".png", ".webp", ".jpeg")) and not file.startswith("branding_"):
+                        try: os.remove(os.path.join(root, file))
+                        except: pass
+        return {"msg": f"Sistema limpo com sucesso (Modo: {mode})"}
+    except Exception as e:
+        db.rollback()
+        return {"error": str(e)}
+
 os.makedirs("storage", exist_ok=True)
 
 # Create tables
