@@ -604,22 +604,27 @@
                         </div>
                     </div>
                     <div style="padding:24px 28px;">
-                        <div style="margin-bottom:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;background:var(--bg-body);padding:20px;border-radius:16px;border:1px solid var(--border-color);">
-                            <div class="form-group" style="margin:0;min-width:160px;flex:1;">
-                                <label>Tipo de Peça</label>
+                        <style>
+                            #export-filter-row .ss-main { height: 42px !important; border-radius: 10px; border-color: var(--border-color); background: var(--bg-card); }
+                            #export-filter-row .ss-values { min-height: 42px !important; display: flex; align-items: center; }
+                            #export-filter-row input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.6; }
+                        </style>
+                        <div id="export-filter-row" style="margin-bottom:25px; display:grid; grid-template-columns: repeat(4, 1fr); gap:20px; background:var(--bg-body); padding:24px; border-radius:18px; border:1px solid var(--border-color);">
+                            <div class="form-group" style="margin:0;">
+                                <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; margin-bottom:8px; display:block;">Tipo de Peça</label>
                                 <select id="export-filter-type"><option value="">Todos os Tipos</option></select>
                             </div>
-                            <div class="form-group" style="margin:0;min-width:160px;flex:1;">
-                                <label>Marca</label>
+                            <div class="form-group" style="margin:0;">
+                                <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; margin-bottom:8px; display:block;">Marca</label>
                                 <select id="export-filter-brand"><option value="">Todas as Marcas</option></select>
                             </div>
-                            <div class="form-group" style="margin:0;min-width:160px;flex:1;">
-                                <label>De:</label>
-                                <input type="date" id="export-filter-start" style="height:38px;padding:8px 10px;border:1px solid var(--border-color);border-radius:8px;background:var(--bg-card);color:var(--text-main);width:100%;box-sizing:border-box;">
+                            <div class="form-group" style="margin:0;">
+                                <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; margin-bottom:8px; display:block;">De:</label>
+                                <input type="date" id="export-filter-start" style="height:42px; padding:10px 14px; border:1px solid var(--border-color); border-radius:10px; background:var(--bg-card); color:var(--text-main); width:100%; box-sizing:border-box; font-family:inherit; font-size:0.875rem;">
                             </div>
-                            <div class="form-group" style="margin:0;min-width:160px;flex:1;">
-                                <label>Até:</label>
-                                <input type="date" id="export-filter-end" style="height:38px;padding:8px 10px;border:1px solid var(--border-color);border-radius:8px;background:var(--bg-card);color:var(--text-main);width:100%;box-sizing:border-box;">
+                            <div class="form-group" style="margin:0;">
+                                <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; margin-bottom:8px; display:block;">Até:</label>
+                                <input type="date" id="export-filter-end" style="height:42px; padding:10px 14px; border:1px solid var(--border-color); border-radius:10px; background:var(--bg-card); color:var(--text-main); width:100%; box-sizing:border-box; font-family:inherit; font-size:0.875rem;">
                             </div>
                         </div>
                         <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
