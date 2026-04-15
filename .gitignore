@@ -1,0 +1,54 @@
+# ============================================================
+# AutoParts Management — .gitignore
+# ============================================================
+
+# Variáveis de ambiente (contêm segredos — NUNCA commitar)
+.env
+.env.local
+.env.production
+
+# Ambiente virtual Python
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Base de dados local
+*.db
+*.db-shm
+*.db-wal
+*.db.bak*
+
+# Ficheiros de exportação/backup gerados
+storage/Backup_*
+storage/template_*
+storage/export_*
+storage/data_backup.json
+
+# Imagens carregadas localmente (não devem ir para Git)
+# Manter apenas a pasta, ignorar o conteúdo:
+storage/*
+!storage/.gitkeep
+
+# Ficheiros de build e cache
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# IDEs e ferramentas
+.vscode/
+.idea/
+*.code-workspace
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Pastas de desenvolvimento local
+scratch/
+miguel/

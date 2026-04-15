@@ -1,0 +1,2 @@
+# Este ficheiro garante que a pasta storage/ é versionada no Git
+# O conteúdo da pasta (imagens, DB) está excluído via .gitignore

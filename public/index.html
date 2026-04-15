@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Peças Auto</title>
+    <meta name="description" content="Encontre peças automóveis de qualidade. Motores, transmissões, eletrónica e mais.">
+    
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* Essential catalog micro-overrides can go here */
+    </style>
+</head>
+<script>
+    const savedTheme = localStorage.getItem('atp_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+</script>
+<body>
+
+    <!-- NAVBAR -->
+    <header class="navbar glass-effect" style="position:sticky; top:0; z-index:100; height:64px; display:flex; align-items:center; justify-content:space-between; padding: 0 5%;">
+        <a class="navbar-brand" href="index.html">
+            <div class="navbar-brand-icon" id="navbar-logo-icon">
+                <i class="fa-solid fa-wrench"></i>
+            </div>
+            <div>
+                <div class="navbar-brand-name" id="navbar-brand-name">Auto Parts Stock</div>
+                <div class="navbar-brand-sub" id="navbar-brand-sub">Peças Automóveis Usadas</div>
+            </div>
+        </a>
+        <nav class="navbar-actions">
+            <button class="theme-toggle" id="theme-toggle" title="Alternar Modo Escuro">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+            <a href="admin.html" class="btn-admin">
+                <i class="fa-solid fa-lock"></i> Área Admin
+            </a>
+        </nav>
+    </header>
+
+    <!-- HERO -->
+    <section class="hero" style="padding-bottom:50px;">
+        <div class="hero-badge">
+            <i class="fa-solid fa-circle" style="font-size:0.5rem; color:var(--success);"></i>
+            Stock Ativo &amp; Atualizado
+        </div>
+        <h1 id="hero-title">Catálogo de Peças</h1>
+        <p class="hero-sub" id="hero-subtitle">Encontre componentes de alta qualidade para o seu veículo entre milhares de referências em stock.</p>
+    </section>
+
+    <!-- TABS -->
+    <div style="display:flex; justify-content:center; gap:12px; margin-top:-28px; position:relative; z-index:10; padding:0 5%;">
+        <button class="btn-tab active" id="tab-parts" onclick="switchCatalog('parts')">
+            <i class="fa-solid fa-gears"></i> Peças Auto 
+        </button>
+        <button class="btn-tab" id="tab-Para-Peças" onclick="switchCatalog('Para Peças')">
+            <i class="fa-solid fa-truck-pickup"></i> Veículos
+        </button>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-bar">
+        <div class="stat-item">
+            <span class="stat-dot"></span>
+            <span><strong id="stats-count">—</strong> Itens Disponíveis</span>
+        </div>
+        <div class="stat-item"><i class="fa-solid fa-comment-dots"></i> Resposta em 24h</div>
+        <div class="stat-item"><i class="fa-solid fa-shield-check"></i> Qualidade Garantida</div>
+    </div>
+
+    <!-- CATALOG -->
+    <main class="catalog-container">
+        <!-- FILTER BAR -->
+        <div class="filter-bar">
+            <div class="filter-bar-left">
+                <i class="fa-solid fa-sliders" style="color:var(--accent);"></i>
+                <span class="filter-bar-label">Filtros</span>
+            </div>
+            <div class="filter-bar-controls" id="filter-controls-parts">
+                <div class="filter-select-wrap">
+                    <i class="fa-solid fa-car"></i>
+                    <select id="filter-brand" onchange="filterItems()">
+                        <option value="">Todas as Marcas</option>
+                    </select>
+                </div>
+                <div class="filter-select-wrap" id="filter-type-wrap">
+                    <i class="fa-solid fa-puzzle-piece"></i>
+                    <select id="filter-type" onchange="filterItems()">
+                        <option value="">Todos os Tipos</option>
+                    </select>
+                </div>
+                <div class="filter-search-wrap" id="filter-search-wrap">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="filter-search" placeholder="Pesquisar..." onkeypress="if(event.key==='Enter') filterItems()" oninput="if(this.value==='') filterItems()">
+                </div>
+            </div>
+            <div class="filter-bar-right">
+                <span class="results-count" id="results-count">A carregar...</span>
+                <button class="filter-reset-btn" onclick="resetFilters()" title="Limpar filtros"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+
+        <div class="catalog-grid" id="catalog-grid">
+            <!-- Injected -->
+        </div>
+
+        <div id="pagination-container" style="margin-top:40px; display:flex; justify-content:center; gap:8px;"></div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer style="padding:40px 5%; text-align:center; border-top:1px solid var(--border-color); color:var(--text-muted); font-size:0.9rem;">
+        <p id="site-footer-text">© 2026 Auto Parts Stock · Todos os direitos reservados.</p>
+    </footer>
+
+    <!-- MODAL INQUIRY -->
+    <div class="modal-overlay hidden" id="inquiry-modal">
+        <div class="modal-box" style="max-width:480px;">
+            <div class="modal-header-row">
+                <h3 class="modal-title">Pedir Informações</h3>
+                <button class="modal-close" onclick="closeInquiryModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="inquiry-part-info" style="margin-bottom:20px; padding:12px; background:var(--bg-body); border-radius:12px; border:1px solid var(--border-color);"></div>
+            <form id="inquiry-form">
+                <input type="hidden" id="inq-part-id">
+                <input type="hidden" id="inq-vehicle-id">
+                <div class="modal-field"><label class="modal-label">Email</label><input type="email" id="inq-email" required class="modal-input"></div>
+                <div class="modal-field"><label class="modal-label">Telefone</label><input type="tel" id="inq-phone" required class="modal-input"></div>
+                <div class="modal-field"><label class="modal-label">Sua Mensagem</label><textarea id="inq-message" required class="modal-input" rows="3"></textarea></div>
+                <button type="submit" class="btn-primary" style="width:100%; padding:14px; border-radius:12px; font-weight:700;">Enviar Mensagem</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL PART DETAIL -->
+    <div class="modal-overlay hidden" id="part-detail-modal" onclick="if(event.target===this) closeDetailModal()">
+        <div class="modal-box" style="max-width:900px; padding:0; overflow:hidden; display:flex; flex-direction:column;">
+            <!-- Image area -->
+            <div style="background:linear-gradient(135deg,#1e1b4b,#312e81); padding:32px; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:280px; position:relative;">
+                <button class="modal-close" onclick="closeDetailModal()" style="position:absolute; top:16px; right:16px; color:#fff; background:rgba(255,255,255,0.15); border:none; border-radius:50%; width:36px; height:36px; cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center;"><i class="fa-solid fa-xmark"></i></button>
+                <div id="detail-img-container" style="width:100%; max-height:240px; display:flex; align-items:center; justify-content:center;"></div>
+                <div id="detail-img-nav" style="display:flex; gap:8px; margin-top:16px;"></div>
+                <div style="display:flex; gap:12px; margin-top:12px;">
+                    <button onclick="changeDetailImg(-1)" style="background:rgba(255,255,255,0.15); color:#fff; border:none; border-radius:50%; width:36px; height:36px; cursor:pointer; font-size:1rem;"><i class="fa-solid fa-chevron-left"></i></button>
+                    <button onclick="changeDetailImg(1)" style="background:rgba(255,255,255,0.15); color:#fff; border:none; border-radius:50%; width:36px; height:36px; cursor:pointer; font-size:1rem;"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+            </div>
+            <!-- Info area -->
+            <div style="padding:28px 32px; overflow-y:auto; max-height:60vh;">
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+                    <span id="det-type-tag" style="background:var(--primary); color:#fff; padding:4px 12px; border-radius:20px; font-size:0.8rem; font-weight:600;"></span>
+                </div>
+                <h2 id="det-title" style="font-size:1.5rem; font-weight:700; margin:0 0 4px;"></h2>
+                <div id="det-price" style="font-size:1.25rem; font-weight:800; color:var(--primary); margin-bottom:16px;"></div>
+
+                <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px;">
+                    <div style="background:var(--bg-card); padding:12px 16px; border-radius:12px; border:1px solid var(--border-color);">
+                        <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">Marca</div>
+                        <div id="det-brand" style="font-weight:600;"></div>
+                    </div>
+                    <div style="background:var(--bg-card); padding:12px 16px; border-radius:12px; border:1px solid var(--border-color);">
+                        <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">Modelo</div>
+                        <div id="det-model" style="font-weight:600;"></div>
+                    </div>
+                    <div style="background:var(--bg-card); padding:12px 16px; border-radius:12px; border:1px solid var(--border-color);">
+                        <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">Ano</div>
+                        <div id="det-year" style="font-weight:600;"></div>
+                    </div>
+                </div>
+
+                <div id="det-dyn-container" style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:16px;"></div>
+
+                <div style="margin-bottom:20px;">
+                    <div style="font-size:0.8rem; font-weight:600; color:var(--text-muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.05em;">Descrição</div>
+                    <p id="det-desc" style="margin:0; color:var(--text-secondary); font-size:0.9rem; line-height:1.6;"></p>
+                </div>
+
+                <!-- Action buttons -->
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <button id="det-contact-btn" class="btn-primary" style="flex:1; padding:14px; border-radius:12px; font-weight:700; font-size:1rem;">
+                        <i class="fa-regular fa-envelope"></i> Pedir Informações
+                    </button>
+                    <div style="position:relative;">
+                        <button id="det-share-btn" onclick="toggleShareDropdown(event)" style="padding:14px 18px; border-radius:12px; font-weight:700; font-size:1rem; background:var(--bg-body); border:1px solid var(--border-color); color:var(--text-main); cursor:pointer; display:flex; align-items:center; gap:8px; font-family:inherit; white-space:nowrap; transition:0.2s;" onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.color='var(--text-main)'">
+                            <i class="fa-solid fa-share-nodes"></i> Partilhar
+                        </button>
+                        <div id="share-dropdown" class="hidden" style="position:absolute; bottom:calc(100% + 8px); right:0; background:var(--bg-card); border:1px solid var(--border-color); border-radius:14px; box-shadow:0 8px 30px rgba(0,0,0,0.15); padding:8px; min-width:200px; z-index:10;">
+                            <a id="share-whatsapp" href="#" target="_blank" rel="noopener" onclick="return false;" style="display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:10px; text-decoration:none; color:var(--text-main); font-size:0.9rem; font-weight:500; transition:0.15s;" onmouseover="this.style.background='rgba(37,211,102,0.1)'; this.style.color='#25D366'" onmouseout="this.style.background=''; this.style.color='var(--text-main)'">
+                                <i class="fa-brands fa-whatsapp" style="font-size:1.2rem; color:#25D366;"></i> WhatsApp
+                            </a>
+                            <a id="share-facebook" href="#" target="_blank" rel="noopener" onclick="return false;" style="display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:10px; text-decoration:none; color:var(--text-main); font-size:0.9rem; font-weight:500; transition:0.15s;" onmouseover="this.style.background='rgba(24,119,242,0.1)'; this.style.color='#1877F2'" onmouseout="this.style.background=''; this.style.color='var(--text-main)'">
+                                <i class="fa-brands fa-facebook" style="font-size:1.2rem; color:#1877F2;"></i> Facebook
+                            </a>
+                            <hr style="border:none; border-top:1px solid var(--border-color); margin:6px 0;">
+                            <button id="share-copy-btn" onclick="copyShareLink()" style="width:100%; display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:10px; background:transparent; border:none; cursor:pointer; color:var(--text-main); font-size:0.9rem; font-weight:500; font-family:inherit; transition:0.15s;" onmouseover="this.style.background='var(--bg-body)'" onmouseout="this.style.background='transparent'">
+                                <i class="fa-solid fa-link" style="font-size:1rem; color:var(--accent);"></i> Copiar Link
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="js/api.js?v=5"></script>
+    <script src="js/ui.js?v=5"></script>
+    <script src="js/searchable-select.js?v=1"></script>
+    <script src="js/catalog.js?v=5"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementById('theme-toggle');
+            const icon = btn.querySelector('i');
+            const updateUI = (theme) => {
+                document.documentElement.setAttribute('data-theme', theme);
+                icon.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+                btn.style.color = theme === 'dark' ? '#fbbf24' : '';
+            };
+            updateUI(document.documentElement.getAttribute('data-theme'));
+            btn.addEventListener('click', () => {
+                const newT = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                localStorage.setItem('atp_theme', newT);
+                updateUI(newT);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+env/
+venv/
+
+# IDEs e ferramentas locais
+.vscode/
+.idea/
+*.code-workspace
+
+# Git
+.git/
+.gitignore
+
+# Variáveis de ambiente reais (nunca incluir no Docker)
+.env
+
+# Base de dados local (o volume é montado externamente em produção)
+*.db
+*.db-shm
+*.db-wal
+*.db.bak*
+
+# Ficheiros de exportação/backup temporários
+storage/Backup_*
+storage/template_*
+storage/export_*
+storage/data_backup.json
+
+# Scripts de utilidade/debug/migração (não necessários em produção)
+check_*.py
+migrate_*.py
+fix_*.py
+profile_db.py
+populate_search_index.py
+scratch_seed.py
+find_dup.py
+list_tables.py
+test_backup.json
+
+# Pastas de desenvolvimento
+scratch/
+miguel/
+
+# Ficheiros temporários do sistema
+.DS_Store
+Thumbs.db

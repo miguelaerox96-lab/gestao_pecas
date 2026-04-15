@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  autoparts:
+    build: .
+    container_name: autoparts_app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      # Persistência da base de dados e imagens entre deploys
+      - autoparts_storage:/app/storage
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  autoparts_storage:
+    driver: local
