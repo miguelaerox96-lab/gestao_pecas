@@ -140,6 +140,7 @@ app.mount("/storage", StaticFiles(directory="storage"), name="storage")
 
 # Serve main pages explicitly
 @app.get("/")
+@app.get("/index.html")
 async def get_index():
     return FileResponse(BASE_DIR / "public" / "index.html")
 
