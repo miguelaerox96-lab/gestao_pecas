@@ -9,8 +9,7 @@ from fastapi.responses import FileResponse
 
 import models
 from database import engine, get_db
-import bulk
-from routers import auth, parts, vehicles, config, analytics, inquiries, storage, users
+from routers import auth, parts, vehicles, config, analytics, inquiries, storage, users, bulk
 
 def get_base_path():
     """Get the absolute path to the resource directory, works for dev and PyInstaller."""
@@ -146,25 +145,3 @@ if __name__ == "__main__":
     print(f"---------------------------------")
     
     uvicorn.run(app, host=host, port=port)
-async def read_index():
-    return FileResponse("public/index.html")
-
-@app.get("/admin.html")
-async def read_admin():
-    return FileResponse("public/admin.html")
-
-@app.get("/style.css")
-async def read_style():
-    return FileResponse("public/style.css")
-
-# Fallback for any other .html files in public
-@app.get("/{page}.html")
-async def read_page(page: str):
-    path = f"public/{page}.html"
-    if os.path.exists(path):
-        return FileResponse(path)
-    return {"detail": "Not Found"}
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

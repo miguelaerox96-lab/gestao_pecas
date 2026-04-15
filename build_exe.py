@@ -27,7 +27,7 @@ def build():
     # --noconfirm: Sobrescreve sem perguntar
     
     cmd = [
-        "pyinstaller",
+        sys.executable, "-m", "PyInstaller",
         "--name", "AutoParts",
         "--onedir",
         "--add-data", "public;public",

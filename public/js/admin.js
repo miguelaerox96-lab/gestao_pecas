@@ -2409,7 +2409,7 @@ window.clearSystem = async () => {
     if (!confirm2) return;
 
     try {
-        const res = await apiCall('/bulk/clear', 'POST', { mode });
+        const res = await apiCall('/maintenance/clear', 'POST', { mode });
         showToast(res.msg || "Sistema limpo com sucesso.");
         // Reload page to clear all local state and caches
         setTimeout(() => {

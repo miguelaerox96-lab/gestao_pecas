@@ -12,6 +12,11 @@ from tempfile import mkdtemp
 from typing import List, Dict, Optional, Any
 import uuid
 
+from pydantic import BaseModel
+
+class ClearSystemRequest(BaseModel):
+    mode: str = "partial" # "partial" or "full"
+
 import models
 from database import get_db
 from routers.auth import check_admin, get_download_admin
@@ -628,13 +633,12 @@ def bulk_create_parts(parts_in: List[Dict[str, Any]], db: Session = Depends(get_
     db.commit()
     return results
 
-@router.post("/bulk/clear")
-def clear_system(mode: str = "partial", db: Session = Depends(get_db), admin: models.User = Depends(check_admin)):
+@router.post("/maintenance/clear")
+def clear_system(req: ClearSystemRequest, db: Session = Depends(get_db), admin: models.User = Depends(check_admin)):
     """
-    Clears system data based on the mode.
-    - partial: deletes inventory, vehicles, inquiries, and history.
-    - full: deletes everything except users.
+    Manutenção do sistema: Limpa os dados de acordo com o modo solicitado.
     """
+    mode = req.mode
     try:
         # 1. Clear Inquiries and History (Foreign key dependents)
         db.query(models.Inquiry).delete()
