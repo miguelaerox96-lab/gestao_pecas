@@ -51,7 +51,9 @@ def build():
         print("\n" + "="*40)
         print("CONCLUÍDO COM SUCESSO!")
         print(f"O seu executável está em: {os.path.abspath('dist/AutoParts/AutoParts.exe')}")
-        print("Pode copiar a pasta 'dist/AutoParts' para qualquer PC Windows.")
+        print("\n[DICA] Pode agora escolher a porta ao iniciar:")
+        print("1. Automaticamente: Se a porta 8000 estiver ocupada, o programa perguntará qual deseja usar.")
+        print("2. Manualmente: Execute o programa com '--port 8001' no terminal ou atalho.")
         print("="*40)
     except subprocess.CalledProcessError as e:
         print(f"[ERRO] Falha no PyInstaller: {e}")

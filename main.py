@@ -162,15 +162,41 @@ async def get_favicon():
 if __name__ == "__main__":
     import uvicorn
     import multiprocessing
+    import argparse
+    import socket
+    
     multiprocessing.freeze_support()
+
+    def is_port_in_use(p):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            return s.connect_ex(('localhost', p)) == 0
+
+    parser = argparse.ArgumentParser(description="AutoParts Management System")
+    parser.add_argument("--host", default=os.getenv("HOST", "0.0.0.0"), help="Host to run the server on")
+    parser.add_argument("--port", type=int, default=int(os.getenv("PORT", 8000)), help="Port to run the server on")
+    args = parser.parse_args()
     
-    # Use environment variables if present, otherwise defaults for local work
-    host = os.getenv("HOST", "0.0.0.0")
-    port = int(os.getenv("PORT", 8000))
+    host = args.host
+    port = args.port
+
+    # If port is busy and we're not in a non-interactive environment (like a cloud log)
+    # prompt the user to choose another one.
+    if is_port_in_use(port):
+        print(f"\n[AVISO] A porta {port} já está a ser utilizada.")
+        try:
+            new_port = input(f"Introduza uma nova porta para este ambiente (ex: {port+1}) ou prima Enter para sair: ").strip()
+            if not new_port:
+                sys.exit(1)
+            port = int(new_port)
+        except (KeyboardInterrupt, EOFError):
+            sys.exit(1)
+        except ValueError:
+            print("Porta inválida. A encerrar...")
+            sys.exit(1)
     
-    print(f"--- Servidor AutoParts Ligado ---")
+    print(f"\n--- Servidor AutoParts Ligado ---")
     print(f"Aceda localmente em: http://localhost:{port}")
     print(f"Aceda na rede em: http://IP_DESTE_PC:{port}")
-    print(f"---------------------------------")
+    print(f"---------------------------------\n")
     
     uvicorn.run(app, host=host, port=port)
