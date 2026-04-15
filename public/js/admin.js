@@ -145,7 +145,7 @@ function populateSelectors() {
         _ssInstances[id] = new SearchableSelect(el, opts, {
             placeholder: isFilter ? 'Todos os Tipos' : '-- Selecione Tipo --',
             searchPlaceholder: 'Pesquisar tipo...',
-            inline: isFilter || id.includes('export'),  // no border inside filter bar
+            inline: isFilter,  // Only true for the top inventory filter bar
             onChange: isFilter ? () => { pageParts = 1; loadParts(); } : null
         });
     });
@@ -171,7 +171,7 @@ function populateSelectors() {
         _ssInstances[id] = new SearchableSelect(el, opts, {
             placeholder:       isFilter ? 'Todas as Marcas' : '-- Marca --',
             searchPlaceholder: 'Pesquisar marca...',
-            inline:            isFilter || id.includes('export'),
+            inline:            isFilter,
             onChange: isFilter ? () => { pageParts = 1; loadParts(); } : null
         });
     });
@@ -196,7 +196,7 @@ function populateSelectors() {
         _ssInstances[id] = new SearchableSelect(el, opts, {
             placeholder:       '-- Localização --',
             searchPlaceholder: 'Pesquisar local...',
-            inline:            id.includes('export')
+            inline:            false
         });
     });
 
