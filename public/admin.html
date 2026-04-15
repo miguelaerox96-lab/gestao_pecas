@@ -603,14 +603,39 @@
                             <div style="font-size:0.8rem;color:var(--text-muted);margin-top:2px;">Exporta apenas o stock atual em Excel — para revisão, relatórios ou análise externa</div>
                         </div>
                     </div>
-                    <div style="padding:20px 28px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
-                        <button class="btn btn-secondary" onclick="doExportReport('inventory', this)" style="gap:8px;">
-                            <i class="fa-solid fa-file-excel" style="color:#16a34a;"></i> Inventário Atual (Excel)
-                        </button>
-                        <button class="btn btn-secondary" onclick="doExportReport('history', this)" style="gap:8px;">
-                            <i class="fa-solid fa-clock-rotate-left" style="color:var(--accent);"></i> Histórico de Vendas (Excel)
-                        </button>
-                        <span style="font-size:0.8rem;color:var(--text-muted);margin-left:8px;"><i class="fa-solid fa-circle-info"></i> Para relatórios externos — não serve para restaurar o sistema</span>
+                    <div style="padding:24px 28px;">
+                        <div style="margin-bottom:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;background:var(--bg-body);padding:20px;border-radius:16px;border:1px solid var(--border-color);">
+                            <div class="form-group" style="margin:0;min-width:160px;flex:1;">
+                                <label>Tipo de Peça</label>
+                                <select id="export-filter-type"><option value="">Todos os Tipos</option></select>
+                            </div>
+                            <div class="form-group" style="margin:0;min-width:160px;flex:1;">
+                                <label>Marca</label>
+                                <select id="export-filter-brand"><option value="">Todas as Marcas</option></select>
+                            </div>
+                            <div class="form-group" style="margin:0;min-width:160px;flex:1;">
+                                <label>Localização</label>
+                                <select id="export-filter-location"><option value="">Todas as Localizações</option></select>
+                            </div>
+                            <div class="form-group" style="margin:0;min-width:140px;">
+                                <label>De:</label>
+                                <input type="date" id="export-filter-start" style="padding:8px 10px;border:1px solid var(--border-color);border-radius:8px;background:var(--bg-card);color:var(--text-main);width:100%;">
+                            </div>
+                            <div class="form-group" style="margin:0;min-width:140px;">
+                                <label>Até:</label>
+                                <input type="date" id="export-filter-end" style="padding:8px 10px;border:1px solid var(--border-color);border-radius:8px;background:var(--bg-card);color:var(--text-main);width:100%;">
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+                            <button class="btn btn-primary" onclick="doExportReport('inventory', this)" style="gap:8px;background:linear-gradient(135deg,#16a34a,#15803d);border:none;">
+                                <i class="fa-solid fa-file-excel"></i> Exportar Inventário Filtrado
+                            </button>
+                            <button class="btn btn-secondary" onclick="doExportReport('history', this)" style="gap:8px;">
+                                <i class="fa-solid fa-clock-rotate-left" style="color:var(--accent);"></i> Histórico de Vendas (Datas)
+                            </button>
+                            <button class="btn btn-secondary" onclick="resetExportFilters()" title="Limpar Filtros"><i class="fa-solid fa-rotate"></i></button>
+                            <span style="font-size:0.8rem;color:var(--text-muted);margin-left:8px;"><i class="fa-solid fa-circle-info"></i> Aplica os filtros acima a ambos os relatórios</span>
+                        </div>
                     </div>
                 </div>
 

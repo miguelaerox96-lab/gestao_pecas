@@ -111,9 +111,9 @@ function applyRoleRestrictions() {
 const _ssInstances = {};
 
 function populateSelectors() {
-    const typeSels = ['part-type', 'bulk-type-select', 'admin-filter-type'];
-    const brandSels = ['part-brand', 'vehicle-make', 'admin-filter-brand'];
-    const locSels = ['part-location'];
+    const typeSels = ['part-type', 'bulk-type-select', 'admin-filter-type', 'export-filter-type'];
+    const brandSels = ['part-brand', 'vehicle-make', 'admin-filter-brand', 'export-filter-brand'];
+    const locSels = ['part-location', 'export-filter-location'];
     const statusSels = ['admin-filter-status'];
     const vehTypeSels = ['vehicles-filter-type', 'vehicle-type'];
 
@@ -145,7 +145,7 @@ function populateSelectors() {
         _ssInstances[id] = new SearchableSelect(el, opts, {
             placeholder: isFilter ? 'Todos os Tipos' : '-- Selecione Tipo --',
             searchPlaceholder: 'Pesquisar tipo...',
-            inline: isFilter,  // no border inside filter bar
+            inline: isFilter || id.includes('export'),  // no border inside filter bar
             onChange: isFilter ? () => { pageParts = 1; loadParts(); } : null
         });
     });
@@ -171,7 +171,7 @@ function populateSelectors() {
         _ssInstances[id] = new SearchableSelect(el, opts, {
             placeholder:       isFilter ? 'Todas as Marcas' : '-- Marca --',
             searchPlaceholder: 'Pesquisar marca...',
-            inline:            isFilter,
+            inline:            isFilter || id.includes('export'),
             onChange: isFilter ? () => { pageParts = 1; loadParts(); } : null
         });
     });
@@ -196,7 +196,7 @@ function populateSelectors() {
         _ssInstances[id] = new SearchableSelect(el, opts, {
             placeholder:       '-- Localização --',
             searchPlaceholder: 'Pesquisar local...',
-            inline:            false
+            inline:            id.includes('export')
         });
     });
 
@@ -2124,11 +2124,39 @@ window.exportSalesToExcel = async (btn) => {
 
 // Export inventory or history reports
 window.doExportReport = (type, btn) => {
+    const typeId = document.getElementById('export-filter-type')?.value || '';
+    const brand = document.getElementById('export-filter-brand')?.value || '';
+    const location = document.getElementById('export-filter-location')?.value || '';
+    const start = document.getElementById('export-filter-start')?.value || '';
+    const end = document.getElementById('export-filter-end')?.value || '';
+
+    let endpoint = `/bulk/export/${type}`;
+    const params = [];
+    if (typeId) params.push(`type_id=${typeId}`);
+    if (brand) params.push(`brand=${encodeURIComponent(brand)}`);
+    if (location) params.push(`location=${encodeURIComponent(location)}`);
+    if (start) params.push(`start_date=${start}`);
+    if (end) params.push(`end_date=${end}`);
+
+    if (params.length > 0) {
+        endpoint += `?${params.join('&')}`;
+    }
+
     const dt = new Date().toISOString().slice(0, 8);
     const filename = type === 'inventory'
         ? `Inventario_AutoParts_${dt}.xlsx`
         : `Historico_AutoParts_${dt}.xlsx`;
-    doAuthDownload(`/bulk/export/${type}`, filename, btn);
+        
+    doAuthDownload(endpoint, filename, btn);
+};
+
+window.resetExportFilters = () => {
+    if (_ssInstances['export-filter-type']) _ssInstances['export-filter-type'].reset();
+    if (_ssInstances['export-filter-brand']) _ssInstances['export-filter-brand'].reset();
+    if (_ssInstances['export-filter-location']) _ssInstances['export-filter-location'].reset();
+    document.getElementById('export-filter-start').value = '';
+    document.getElementById('export-filter-end').value = '';
+    showToast('Filtros de exportação limpos.');
 };
 
 

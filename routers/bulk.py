@@ -107,6 +107,9 @@ def import_parts_zip(file: UploadFile = File(...), db: Session = Depends(get_db)
     
     results = {"success": 0, "errors": []}
     
+    # Load all types for row-level detection
+    all_types = {t.name.lower(): t for t in db.query(models.PartType).all()}
+    
     # Identify type_id
     type_id = None
     for row in ws.iter_rows(min_row=1, max_row=10, values_only=True):
@@ -117,8 +120,8 @@ def import_parts_zip(file: UploadFile = File(...), db: Session = Depends(get_db)
                 pass
                 
     if not type_id:
-        shutil.rmtree(work_dir)
-        raise HTTPException(status_code=400, detail="Falta a tag TYPE_ID= no topo do template.")
+        # Fallback: if no TYPE_ID= is found, we MUST have a TIPO column in all rows
+        pass
             
     # Find headers row
     header_idx = -1
@@ -138,7 +141,17 @@ def import_parts_zip(file: UploadFile = File(...), db: Session = Depends(get_db)
         if not row[0]: continue # Empty row
         
         row_dict = {headers[i]: row[i] for i in range(len(headers)) if i < len(row)}
+
+        # Determine current type for this row
+        current_type_id = type_id
+        row_type_str = str(row_dict.get("TIPO", "")).strip().lower()
+        if row_type_str and row_type_str in all_types:
+            current_type_id = all_types[row_type_str].id
         
+        if not current_type_id:
+            results["errors"].append({"row": r_idx, "msg": "TIPO não identificado para esta linha e nenhum TYPE_ID global encontrado."})
+            continue
+
         ref = row_dict.get("REF_PECA", "")
         loc = row_dict.get("LOCALIZACAO", "")
         
@@ -149,7 +162,7 @@ def import_parts_zip(file: UploadFile = File(...), db: Session = Depends(get_db)
         # Check existing Part in this location
         existing = db.query(models.Part).filter(
             models.Part.part_number == str(ref), 
-            models.Part.type_id == type_id
+            models.Part.type_id == current_type_id
         ).first()
 
         if existing and existing.status != "EmptySlot":
@@ -159,7 +172,7 @@ def import_parts_zip(file: UploadFile = File(...), db: Session = Depends(get_db)
         # Extract dynamic data
         dyn_data = {}
         for k, v in row_dict.items():
-            if k not in ["REF_PECA", "LOCALIZACAO", "MARCA", "MODELO", "ANO", "PRECO", "MOSTRAR_PRECO_SITE", "OBSERVACOES", "FOTOS_FILENAMES"]:
+            if k not in ["REF_PECA", "LOCALIZACAO", "MARCA", "MODELO", "ANO", "PRECO", "MOSTRAR_PRECO_SITE", "OBSERVACOES", "FOTOS_FILENAMES", "TIPO"]:
                 if v is not None:
                     dyn_data[k] = str(v)
                     
@@ -203,7 +216,7 @@ def import_parts_zip(file: UploadFile = File(...), db: Session = Depends(get_db)
                 new_part = models.Part(
                     part_number=str(ref),
                     location=str(loc),
-                    type_id=type_id,
+                    type_id=current_type_id,
                     brand=str(row_dict.get("MARCA", "")) if row_dict.get("MARCA") else None,
                     model=str(row_dict.get("MODELO", "")) if row_dict.get("MODELO") else None,
                     year=str(row_dict.get("ANO", "")) if row_dict.get("ANO") else None,
@@ -229,23 +242,62 @@ def import_parts_zip(file: UploadFile = File(...), db: Session = Depends(get_db)
 
 # 3. EXPORT INVENTORY
 @router.get("/bulk/export/inventory")
-def export_inventory(background_tasks: BackgroundTasks, db: Session = Depends(get_db), admin: models.User = Depends(get_download_admin)):
-    parts = db.query(models.Part).filter(models.Part.status == "Available").all()
-    types = {t.id: t.name for t in db.query(models.PartType).all()}
+def export_inventory(
+    background_tasks: BackgroundTasks, 
+    db: Session = Depends(get_db), 
+    admin: models.User = Depends(get_download_admin),
+    type_id: Optional[int] = None,
+    brand: Optional[str] = None,
+    location: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None
+):
+    query = db.query(models.Part).filter(models.Part.status == "Available")
+    
+    if type_id:
+        query = query.filter(models.Part.type_id == type_id)
+    if brand:
+        query = query.filter(models.Part.brand == brand)
+    if location:
+        query = query.filter(models.Part.location == location)
+    if start_date:
+        try: dt_start = datetime.fromisoformat(start_date)
+        except: dt_start = None
+        if dt_start:
+            sub = db.query(models.HistoryRecord.part_id).filter(models.HistoryRecord.timestamp >= dt_start, models.HistoryRecord.action.like('%Created%')).subquery()
+            query = query.filter(models.Part.id.in_(sub))
+    if end_date:
+        try: dt_end = datetime.fromisoformat(end_date)
+        except: dt_end = None
+        if dt_end:
+            sub = db.query(models.HistoryRecord.part_id).filter(models.HistoryRecord.timestamp <= dt_end, models.HistoryRecord.action.like('%Created%')).subquery()
+            query = query.filter(models.Part.id.in_(sub))
+        
+    parts = query.all()
+    types_map = {t.id: t.name for t in db.query(models.PartType).all()}
     
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Inventario AutoParts"
     
     headers = ["ID", "TIPO", "REFERENCIA", "MARCA", "MODELO", "ANO", "PRECO", "PRECO_OCULTO", "LOCALIZACAO"]
+    
+    # Cache dynamic fields if one type is selected
+    dyn_headers = []
+    if type_id and parts:
+        pt = db.query(models.PartType).filter(models.PartType.id == type_id).first()
+        if pt:
+            dyn_headers = [f.name for f in pt.fields]
+            headers.extend(dyn_headers)
+
     ws.append(headers)
     for col_num in range(1, len(headers) + 1):
         ws.cell(row=1, column=col_num).font = openpyxl.styles.Font(bold=True)
         
     for p in parts:
-        ws.append([
+        row_vals = [
             p.id,
-            types.get(p.type_id, "Desconhecido"),
+            types_map.get(p.type_id, "Desconhecido"),
             p.part_number,
             p.brand or "-",
             p.model or "-",
@@ -253,7 +305,10 @@ def export_inventory(background_tasks: BackgroundTasks, db: Session = Depends(ge
             p.price or "0.00",
             "Sim" if not p.show_price else "Nao",
             p.location
-        ])
+        ]
+        for h in dyn_headers:
+            row_vals.append(p.dynamic_data.get(h, ""))
+        ws.append(row_vals)
         
     os.makedirs("storage/temp", exist_ok=True)
     out_path = f"storage/temp/export_inventory_{uuid.uuid4()}.xlsx"
@@ -270,8 +325,23 @@ def export_inventory(background_tasks: BackgroundTasks, db: Session = Depends(ge
 
 # 4. EXPORT HISTORY (SALES)
 @router.get("/bulk/export/history")
-def export_history(background_tasks: BackgroundTasks, db: Session = Depends(get_db), admin: models.User = Depends(get_download_admin)):
-    records = db.query(models.HistoryRecord).order_by(models.HistoryRecord.timestamp.desc()).all()
+def export_history(
+    background_tasks: BackgroundTasks, 
+    db: Session = Depends(get_db), 
+    admin: models.User = Depends(get_download_admin),
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None
+):
+    query = db.query(models.HistoryRecord).order_by(models.HistoryRecord.timestamp.desc())
+    
+    if start_date:
+        try: query = query.filter(models.HistoryRecord.timestamp >= datetime.fromisoformat(start_date))
+        except: pass
+    if end_date:
+        try: query = query.filter(models.HistoryRecord.timestamp <= datetime.fromisoformat(end_date))
+        except: pass
+
+    records = query.all()
     
     wb = openpyxl.Workbook()
     ws = wb.active
