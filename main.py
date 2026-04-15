@@ -1,14 +1,24 @@
 import os
+import sys
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
+from fastapi.responses import FileResponse
 
 import models
 from database import engine, get_db
 import bulk
 from routers import auth, parts, vehicles, config, analytics, inquiries, storage, users
 
+def get_base_path():
+    """Get the absolute path to the resource directory, works for dev and PyInstaller."""
+    if getattr(sys, 'frozen', False):
+        return Path(sys._MEIPASS)
+    return Path(__file__).parent
+
+BASE_DIR = get_base_path()
 app = FastAPI(title="AutoParts Management API")
 os.makedirs("storage", exist_ok=True)
 
@@ -91,13 +101,51 @@ app.include_router(users.router)
 app.include_router(bulk.router)
 
 # Mount specific static subdirectories and files
-if os.path.exists("public/js"):
-    app.mount("/js", StaticFiles(directory="public/js"), name="js")
-if os.path.exists("storage"):
-    app.mount("/storage", StaticFiles(directory="storage"), name="storage")
+JS_DIR = BASE_DIR / "public" / "js"
+if JS_DIR.exists():
+    app.mount("/js", StaticFiles(directory=str(JS_DIR)), name="js")
+
+STORAGE_DIR = Path("storage")
+if not STORAGE_DIR.exists():
+    STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+
+app.mount("/storage", StaticFiles(directory="storage"), name="storage")
 
 # Serve main pages explicitly
 @app.get("/")
+async def get_index():
+    return FileResponse(BASE_DIR / "public" / "index.html")
+
+@app.get("/admin.html")
+async def get_admin():
+    return FileResponse(BASE_DIR / "public" / "admin.html")
+
+@app.get("/style.css")
+async def get_css():
+    return FileResponse(BASE_DIR / "public" / "style.css")
+
+@app.get("/favicon.ico")
+async def get_favicon():
+    fav = BASE_DIR / "public" / "favicon.ico"
+    if fav.exists():
+        return FileResponse(fav)
+    return ""
+
+if __name__ == "__main__":
+    import uvicorn
+    import multiprocessing
+    multiprocessing.freeze_support()
+    
+    # Use environment variables if present, otherwise defaults for local work
+    host = os.getenv("HOST", "0.0.0.0")
+    port = int(os.getenv("PORT", 8000))
+    
+    print(f"--- Servidor AutoParts Ligado ---")
+    print(f"Aceda localmente em: http://localhost:{port}")
+    print(f"Aceda na rede em: http://IP_DESTE_PC:{port}")
+    print(f"---------------------------------")
+    
+    uvicorn.run(app, host=host, port=port)
 async def read_index():
     return FileResponse("public/index.html")
 

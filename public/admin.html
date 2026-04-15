@@ -754,6 +754,34 @@
                     </div>
                 </div>
 
+                <!-- === SECTION 5: MANUTENÇÃO & LIMPEZA === -->
+                <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:20px;overflow:hidden;border:1px solid rgba(239,68,68,0.2);">
+                    <div style="padding:20px 28px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,rgba(239,68,68,0.06),rgba(239,68,68,0));">
+                        <div style="width:44px;height:44px;border-radius:12px;background:rgba(239,68,68,0.12);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--danger);">
+                            <i class="fa-solid fa-broom"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight:800;font-size:1rem;color:var(--text-main);">Limpeza Total do Sistema</div>
+                            <div style="font-size:0.8rem;color:var(--text-muted);margin-top:2px;">Elimina todos os dados para começar um novo inventário do zero</div>
+                        </div>
+                    </div>
+                    <div style="padding:24px 28px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+                        <div class="form-group" style="margin:0;min-width:280px;">
+                            <label>O que deseja apagar?</label>
+                            <select id="cleanup-mode">
+                                <option value="partial">Apenas Dados (Stock, Veículos, Pedidos, Histórico)</option>
+                                <option value="full">TUDO (Dados + Marcas, Tipos e Configurações)</option>
+                            </select>
+                        </div>
+                        <button class="btn" onclick="clearSystem()" style="background:var(--danger);color:white;border:none;padding:12px 24px;border-radius:12px;font-weight:700;display:flex;align-items:center;gap:10px;margin-top:20px;">
+                            <i class="fa-solid fa-trash-can"></i> Limpar Sistema Agora
+                        </button>
+                        <div style="flex:1;font-size:0.82rem;color:var(--text-muted);padding:10px;background:rgba(239,68,68,0.05);border-radius:10px;border:1px dashed rgba(239,68,68,0.2);">
+                            <i class="fa-solid fa-triangle-exclamation" style="color:var(--danger);"></i> <strong>Atenção:</strong> Esta ação é irreversível. O utilizador <code>admin</code> será mantido para que não perca o acesso.
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 

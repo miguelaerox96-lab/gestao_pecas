@@ -2397,3 +2397,25 @@ window.closeVehicleModal = () => toggleModal('vehicle-modal', false);
 window.closeDetailModal = () => toggleModal('part-detail-modal', false);
 window.closeBaixaModal = () => toggleModal('baixa-modal', false);
 window.closeTypeModal = () => toggleModal('type-modal', false);
+
+window.clearSystem = async () => {
+    const mode = document.getElementById('cleanup-mode').value;
+    const modeText = mode === 'full' ? 'TUDO (incluindo categorias e marcas)' : 'apenas o Stock e Histórico';
+    
+    const confirm1 = confirm(`Deseja limpar o sistema agora? Esta ação apagará ${modeText}.`);
+    if (!confirm1) return;
+    
+    const confirm2 = confirm(`ESTA AÇÃO É IRREVERSÍVEL. Tem a certeza que deseja prosseguir com a limpeza ${mode.toUpperCase()}?`);
+    if (!confirm2) return;
+
+    try {
+        const res = await apiCall('/bulk/clear', 'POST', { mode });
+        showToast(res.msg || "Sistema limpo com sucesso.");
+        // Reload page to clear all local state and caches
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
+    } catch (err) {
+        alert("Erro ao limpar sistema: " + err.message);
+    }
+};

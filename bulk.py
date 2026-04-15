@@ -627,3 +627,47 @@ def bulk_create_parts(parts_in: List[Dict[str, Any]], db: Session = Depends(get_
 
     db.commit()
     return results
+
+@router.post("/bulk/clear")
+def clear_system(mode: str = "partial", db: Session = Depends(get_db), admin: models.User = Depends(check_admin)):
+    """
+    Clears system data based on the mode.
+    - partial: deletes inventory, vehicles, inquiries, and history.
+    - full: deletes everything except users.
+    """
+    try:
+        # 1. Clear Inquiries and History (Foreign key dependents)
+        db.query(models.Inquiry).delete()
+        db.query(models.HistoryRecord).delete()
+
+        # 2. Clear Main inventory objects
+        db.query(models.Part).delete()
+        db.query(models.Vehicle).delete()
+
+        if mode == "full":
+            # 3. Clear Configuration data
+            db.query(models.TypeField).delete()
+            db.query(models.PartType).delete()
+            db.query(models.Location).delete()
+            db.query(models.Brand).delete()
+
+        db.commit()
+
+        # 4. Clean up images folder
+        if os.path.exists("storage"):
+            for root, dirs, files in os.walk("storage"):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    # Don't delete system files or branding
+                    if file.endswith((".jpg", ".png", ".webp", ".jpeg")):
+                        # Avoid deleting logo or essential assets if they start with branding_
+                        if not file.startswith("branding_"):
+                            try:
+                                os.remove(file_path)
+                            except:
+                                pass
+
+        return {"msg": f"Sistema limpo com sucesso (Modo: {mode})"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro ao limpar sistema: {str(e)}")
